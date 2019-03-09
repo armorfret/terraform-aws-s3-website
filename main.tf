@@ -23,12 +23,14 @@ data "aws_iam_policy_document" "site-bucket-read-access" {
 }
 
 module "certificate" {
-  source    = "github.com/akerl/terraform-aws-acm-certificate"
+  source    = "armorfret/acm-certificate/aws"
+  version   = "0.0.1"
   hostnames = "${concat(list(var.root-domain), var.redirect-domains)}"
 }
 
 module "publish-user" {
-  source         = "github.com/akerl/terraform-aws-s3-publish"
+  source         = "armorfret/terraform-aws-s3-publish"
+  version        = "0.0.1"
   logging-bucket = "${var.logging-bucket}"
   publish-bucket = "${var.file-bucket}"
   make-bucket    = "0"
