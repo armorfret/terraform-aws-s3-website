@@ -1,11 +1,11 @@
-output "site-dns-name" {
-  value = "${aws_cloudfront_distribution.site_distribution.domain_name}"
+output "site_dns_name" {
+  value = "${aws_cloudfront_distribution.file.domain_name}"
 }
 
-output "redirect-dns-name" {
-  value = "${aws_cloudfront_distribution.redirect_distribution.domain_name}"
+output "redirect_dns_name" {
+  value = "${aws_cloudfront_distribution.redirect.domain_name}"
 }
 
-output "cloudfront-zone-id" {
-  value = "${aws_cloudfront_distribution.site_distribution.hosted_zone_id}"
+output "cloudfront_zone_id" {
+  value = "${aws_cloudfront_distribution.file.hosted_zone_id}"
 }

@@ -1,7 +1,7 @@
-data "aws_iam_policy_document" "redirect-bucket-read-access" {
+data "aws_iam_policy_document" "redirect_bucket_read_access" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::${var.redirect-bucket}/*"]
+    resources = ["arn:aws:s3:::${var.redirect_bucket}/*"]
 
     principals {
       type        = "AWS"
@@ -10,10 +10,10 @@ data "aws_iam_policy_document" "redirect-bucket-read-access" {
   }
 }
 
-data "aws_iam_policy_document" "site-bucket-read-access" {
+data "aws_iam_policy_document" "file_bucket_read_access" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::${var.file-bucket}/*"]
+    resources = ["arn:aws:s3:::${var.file_bucket}/*"]
 
     principals {
       type        = "AWS"
@@ -24,39 +24,39 @@ data "aws_iam_policy_document" "site-bucket-read-access" {
 
 module "certificate" {
   source    = "armorfret/acm-certificate/aws"
-  version   = "0.0.1"
-  hostnames = "${concat(list(var.root-domain), var.redirect-domains)}"
+  version   = "0.0.2"
+  hostnames = "${concat(list(var.primary_hostname), var.redirect_hostnames)}"
 }
 
-module "publish-user" {
+module "publish_user" {
   source         = "armorfret/s3-publish/aws"
-  version        = "0.0.1"
-  logging-bucket = "${var.logging-bucket}"
-  publish-bucket = "${var.file-bucket}"
-  make-bucket    = "0"
+  version        = "0.0.2"
+  logging_bucket = "${var.logging_bucket}"
+  publish_bucket = "${var.file_bucket}"
+  make_bucket    = "0"
 }
 
-resource "aws_s3_bucket" "redirect-bucket" {
-  bucket = "${var.redirect-bucket}"
-  policy = "${data.aws_iam_policy_document.redirect-bucket-read-access.json}"
+resource "aws_s3_bucket" "redirect" {
+  bucket = "${var.redirect_bucket}"
+  policy = "${data.aws_iam_policy_document.redirect_bucket_read_access.json}"
 
   versioning {
     enabled = "true"
   }
 
   logging {
-    target_bucket = "${var.logging-bucket}"
-    target_prefix = "${var.redirect-bucket}/"
+    target_bucket = "${var.logging_bucket}"
+    target_prefix = "${var.redirect_bucket}/"
   }
 
   website {
-    redirect_all_requests_to = "https://${var.root-domain}"
+    redirect_all_requests_to = "https://${var.primary_hostname}"
   }
 }
 
-resource "aws_cloudfront_distribution" "redirect_distribution" {
+resource "aws_cloudfront_distribution" "redirect" {
   origin {
-    domain_name = "${aws_s3_bucket.redirect-bucket.website_endpoint}"
+    domain_name = "${aws_s3_bucket.redirect.website_endpoint}"
     origin_id   = "redirect-bucket"
 
     custom_origin_config {
@@ -67,14 +67,14 @@ resource "aws_cloudfront_distribution" "redirect_distribution" {
     }
   }
 
-  aliases = ["${var.redirect-domains}"]
+  aliases = ["${var.redirect_hostnames}"]
 
   enabled = true
 
   logging_config {
     include_cookies = false
-    bucket          = "${var.logging-bucket}.s3.amazonaws.com"
-    prefix          = "${var.redirect-bucket}-cdn"
+    bucket          = "${var.logging_bucket}.s3.amazonaws.com"
+    prefix          = "${var.redirect_bucket}-cdn"
   }
 
   default_cache_behavior {
@@ -107,34 +107,34 @@ resource "aws_cloudfront_distribution" "redirect_distribution" {
 
   viewer_certificate {
     ssl_support_method       = "sni-only"
-    minimum_protocol_version = "${var.tls-level}"
+    minimum_protocol_version = "${var.tls_level}"
     acm_certificate_arn      = "${module.certificate.arn}"
   }
 }
 
-resource "aws_s3_bucket" "file-bucket" {
-  bucket = "${var.file-bucket}"
-  policy = "${data.aws_iam_policy_document.site-bucket-read-access.json}"
+resource "aws_s3_bucket" "file" {
+  bucket = "${var.file_bucket}"
+  policy = "${data.aws_iam_policy_document.file_bucket_read_access.json}"
 
   versioning {
     enabled = "true"
   }
 
   logging {
-    target_bucket = "${var.logging-bucket}"
-    target_prefix = "${var.file-bucket}/"
+    target_bucket = "${var.logging_bucket}"
+    target_prefix = "${var.file_bucket}/"
   }
 
   website {
     index_document = "index.html"
-    error_document = "${var.error-document}"
+    error_document = "${var.error_document}"
   }
 }
 
-resource "aws_cloudfront_distribution" "site_distribution" {
+resource "aws_cloudfront_distribution" "file" {
   origin {
-    domain_name = "${aws_s3_bucket.file-bucket.website_endpoint}"
-    origin_id   = "site-bucket"
+    domain_name = "${aws_s3_bucket.file.website_endpoint}"
+    origin_id   = "file-bucket"
 
     custom_origin_config {
       http_port              = "80"
@@ -144,21 +144,21 @@ resource "aws_cloudfront_distribution" "site_distribution" {
     }
   }
 
-  aliases = ["${var.root-domain}"]
+  aliases = ["${var.primary_hostname}"]
 
   enabled             = true
   default_root_object = "index.html"
 
   logging_config {
     include_cookies = false
-    bucket          = "${var.logging-bucket}.s3.amazonaws.com"
-    prefix          = "${var.file-bucket}-cdn/"
+    bucket          = "${var.logging_bucket}.s3.amazonaws.com"
+    prefix          = "${var.file_bucket}-cdn/"
   }
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "site-bucket"
+    target_origin_id = "file-bucket"
 
     forwarded_values {
       query_string = false
@@ -185,7 +185,7 @@ resource "aws_cloudfront_distribution" "site_distribution" {
 
   viewer_certificate {
     ssl_support_method       = "sni-only"
-    minimum_protocol_version = "${var.tls-level}"
+    minimum_protocol_version = "${var.tls_level}"
     acm_certificate_arn      = "${module.certificate.arn}"
   }
 }
