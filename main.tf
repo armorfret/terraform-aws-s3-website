@@ -67,7 +67,7 @@ resource "aws_cloudfront_distribution" "redirect" {
     }
   }
 
-  aliases = ["${var.redirect_hostnames}"]
+  aliases = var.redirect_hostnames
 
   enabled = true
 
