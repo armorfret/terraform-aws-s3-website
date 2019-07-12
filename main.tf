@@ -25,27 +25,27 @@ data "aws_iam_policy_document" "file_bucket_read_access" {
 module "certificate" {
   source    = "armorfret/acm-certificate/aws"
   version   = "0.1.3"
-  hostnames = concat(list(var.primary_hostname), var.redirect_hostnames)
+  hostnames = concat([var.primary_hostname], var.redirect_hostnames)
 }
 
 module "publish_user" {
   source         = "armorfret/s3-publish/aws"
   version        = "0.0.2"
-  logging_bucket = "${var.logging_bucket}"
-  publish_bucket = "${var.file_bucket}"
+  logging_bucket = var.logging_bucket
+  publish_bucket = var.file_bucket
   make_bucket    = "0"
 }
 
 resource "aws_s3_bucket" "redirect" {
-  bucket = "${var.redirect_bucket}"
-  policy = "${data.aws_iam_policy_document.redirect_bucket_read_access.json}"
+  bucket = var.redirect_bucket
+  policy = data.aws_iam_policy_document.redirect_bucket_read_access.json
 
   versioning {
     enabled = "true"
   }
 
   logging {
-    target_bucket = "${var.logging_bucket}"
+    target_bucket = var.logging_bucket
     target_prefix = "${var.redirect_bucket}/"
   }
 
@@ -56,7 +56,7 @@ resource "aws_s3_bucket" "redirect" {
 
 resource "aws_cloudfront_distribution" "redirect" {
   origin {
-    domain_name = "${aws_s3_bucket.redirect.website_endpoint}"
+    domain_name = aws_s3_bucket.redirect.website_endpoint
     origin_id   = "redirect-bucket"
 
     custom_origin_config {
@@ -107,33 +107,33 @@ resource "aws_cloudfront_distribution" "redirect" {
 
   viewer_certificate {
     ssl_support_method       = "sni-only"
-    minimum_protocol_version = "${var.tls_level}"
-    acm_certificate_arn      = "${module.certificate.arn}"
+    minimum_protocol_version = var.tls_level
+    acm_certificate_arn      = module.certificate.arn
   }
 }
 
 resource "aws_s3_bucket" "file" {
-  bucket = "${var.file_bucket}"
-  policy = "${data.aws_iam_policy_document.file_bucket_read_access.json}"
+  bucket = var.file_bucket
+  policy = data.aws_iam_policy_document.file_bucket_read_access.json
 
   versioning {
     enabled = "true"
   }
 
   logging {
-    target_bucket = "${var.logging_bucket}"
+    target_bucket = var.logging_bucket
     target_prefix = "${var.file_bucket}/"
   }
 
   website {
     index_document = "index.html"
-    error_document = "${var.error_document}"
+    error_document = var.error_document
   }
 }
 
 resource "aws_cloudfront_distribution" "file" {
   origin {
-    domain_name = "${aws_s3_bucket.file.website_endpoint}"
+    domain_name = aws_s3_bucket.file.website_endpoint
     origin_id   = "file-bucket"
 
     custom_origin_config {
@@ -144,7 +144,7 @@ resource "aws_cloudfront_distribution" "file" {
     }
   }
 
-  aliases = ["${var.primary_hostname}"]
+  aliases = [var.primary_hostname]
 
   enabled             = true
   default_root_object = "index.html"
@@ -185,7 +185,8 @@ resource "aws_cloudfront_distribution" "file" {
 
   viewer_certificate {
     ssl_support_method       = "sni-only"
-    minimum_protocol_version = "${var.tls_level}"
-    acm_certificate_arn      = "${module.certificate.arn}"
+    minimum_protocol_version = var.tls_level
+    acm_certificate_arn      = module.certificate.arn
   }
 }
+
