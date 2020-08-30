@@ -32,7 +32,7 @@ data "aws_iam_policy_document" "file_bucket_read_access" {
 
 module "certificate" {
   source    = "armorfret/acm-certificate/aws"
-  version   = "0.1.12"
+  version   = "0.1.13"
   hostnames = concat([var.primary_hostname], var.redirect_hostnames)
 }
 
