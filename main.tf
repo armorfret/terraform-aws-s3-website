@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    aws = {
+      version = "3.4.0"
+    }
+  }
+}
+
 data "aws_iam_policy_document" "redirect_bucket_read_access" {
   statement {
     actions   = ["s3:GetObject"]
@@ -24,13 +32,13 @@ data "aws_iam_policy_document" "file_bucket_read_access" {
 
 module "certificate" {
   source    = "armorfret/acm-certificate/aws"
-  version   = "0.1.3"
+  version   = "0.1.4"
   hostnames = concat([var.primary_hostname], var.redirect_hostnames)
 }
 
 module "publish_user" {
   source         = "armorfret/s3-publish/aws"
-  version        = "0.1.0"
+  version        = "0.1.1"
   logging_bucket = var.logging_bucket
   publish_bucket = var.file_bucket
   make_bucket    = "0"
