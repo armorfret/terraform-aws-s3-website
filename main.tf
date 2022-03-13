@@ -39,7 +39,7 @@ module "certificate" {
 
 module "publish_user" {
   source         = "armorfret/s3-publish/aws"
-  version        = "0.2.1"
+  version        = "0.2.3"
   logging_bucket = var.logging_bucket
   publish_bucket = var.file_bucket
   make_bucket    = "0"
@@ -47,19 +47,31 @@ module "publish_user" {
 
 resource "aws_s3_bucket" "redirect" {
   bucket = var.redirect_bucket
+}
+
+resource "aws_s3_bucket_versioning" "redirect" {
+  bucket = aws_s3_bucket.redirect.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_policy" "redirect" {
+  bucket = aws_s3_bucket.redirect.id
   policy = data.aws_iam_policy_document.redirect_bucket_read_access.json
+}
 
-  versioning {
-    enabled = "true"
-  }
+resource "aws_s3_bucket_logging" "redirect" {
+  bucket = aws_s3_bucket.redirect.id
 
-  logging {
-    target_bucket = var.logging_bucket
-    target_prefix = "${var.redirect_bucket}/"
-  }
+  target_bucket = var.logging_bucket
+  target_prefix = "${var.redirect_bucket}/"
+}
 
-  website {
-    redirect_all_requests_to = "https://${var.primary_hostname}"
+resource "aws_s3_bucket_website_configuration" "redirect" {
+  bucket = aws_s3_bucket.redirect.bucket
+  redirect_all_requests_to {
+    host = "https://${var.primary_hostname}"
   }
 }
 
@@ -123,20 +135,36 @@ resource "aws_cloudfront_distribution" "redirect" {
 
 resource "aws_s3_bucket" "file" {
   bucket = var.file_bucket
+}
+
+resource "aws_s3_bucket_policy" "file" {
+  bucket = aws_s3_bucket.file.id
   policy = data.aws_iam_policy_document.file_bucket_read_access.json
+}
 
-  versioning {
-    enabled = "true"
+resource "aws_s3_bucket_versioning" "this" {
+  bucket = aws_s3_bucket.this.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_logging" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  target_bucket = var.logging_bucket
+  target_prefix = "${var.file_bucket}/"
+}
+
+resource "aws_s3_bucket_website_configuration" "this" {
+  bucket = aws_s3_bucket.this.bucket
+
+  index_document {
+    suffix = "index.html"
   }
 
-  logging {
-    target_bucket = var.logging_bucket
-    target_prefix = "${var.file_bucket}/"
-  }
-
-  website {
-    index_document = "index.html"
-    error_document = var.error_document
+  error_document {
+    key = var.error_document
   }
 }
 
