@@ -142,22 +142,22 @@ resource "aws_s3_bucket_policy" "file" {
   policy = data.aws_iam_policy_document.file_bucket_read_access.json
 }
 
-resource "aws_s3_bucket_versioning" "this" {
-  bucket = aws_s3_bucket.this.id
+resource "aws_s3_bucket_versioning" "file" {
+  bucket = aws_s3_bucket.file.id
   versioning_configuration {
     status = "Enabled"
   }
 }
 
-resource "aws_s3_bucket_logging" "this" {
-  bucket = aws_s3_bucket.this.id
+resource "aws_s3_bucket_logging" "file" {
+  bucket = aws_s3_bucket.file.id
 
   target_bucket = var.logging_bucket
   target_prefix = "${var.file_bucket}/"
 }
 
-resource "aws_s3_bucket_website_configuration" "this" {
-  bucket = aws_s3_bucket.this.bucket
+resource "aws_s3_bucket_website_configuration" "file" {
+  bucket = aws_s3_bucket.file.bucket
 
   index_document {
     suffix = "index.html"
