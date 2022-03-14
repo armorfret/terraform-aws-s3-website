@@ -27,7 +27,7 @@ variable "redirect_hostnames" {
 variable "tls_level" {
   description = "Strength of TLS ciphers (defaults to most secure option)"
   type        = string
-  default     = "TLSv1.2_2018"
+  default     = "TLSv1.2_2021"
 }
 
 variable "error_document" {
