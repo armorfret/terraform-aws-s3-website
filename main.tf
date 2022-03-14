@@ -71,7 +71,8 @@ resource "aws_s3_bucket_logging" "redirect" {
 resource "aws_s3_bucket_website_configuration" "redirect" {
   bucket = aws_s3_bucket.redirect.bucket
   redirect_all_requests_to {
-    host_name = "https://${var.primary_hostname}"
+    host_name = var.primary_hostname
+    protocol  = "https"
   }
 }
 
