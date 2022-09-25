@@ -213,6 +213,8 @@ resource "aws_cloudfront_distribution" "file" {
     default_ttl            = 0
     max_ttl                = 300
     compress               = true
+
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.this.id
   }
 
   price_class = "PriceClass_100"
