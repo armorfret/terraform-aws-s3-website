@@ -231,7 +231,7 @@ resource "aws_cloudfront_distribution" "file" {
 }
 
 resource "aws_cloudfront_response_headers_policy" "this" {
-  name = "${var.primary_hostname}-policy"
+  name = "${replace(var.primary_hostname, ".", "_")}-policy"
 
   security_headers_config {
     content_type_options {
