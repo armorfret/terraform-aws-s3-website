@@ -36,3 +36,8 @@ variable "error_document" {
   default     = "404.html"
 }
 
+variable "content_security_policy" {
+  description = "CSP value to use for Cloudfront distribution"
+  type        = string
+  default     = "frame-ancestors 'none'; default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
+}
