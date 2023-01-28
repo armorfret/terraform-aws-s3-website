@@ -39,7 +39,7 @@ module "certificate" {
 
 module "publish_user" {
   source         = "armorfret/s3-publish/aws"
-  version        = "0.5.1"
+  version        = "0.5.3"
   logging_bucket = var.logging_bucket
   publish_bucket = var.file_bucket
   make_bucket    = "0"
@@ -47,6 +47,11 @@ module "publish_user" {
 
 resource "aws_s3_bucket" "redirect" {
   bucket = var.redirect_bucket
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_acl" "redirect" {
+  bucket = aws_s3_bucket.redirect.id
   acl    = "private"
 }
 
@@ -147,6 +152,11 @@ resource "aws_cloudfront_distribution" "redirect" {
 
 resource "aws_s3_bucket" "file" {
   bucket = var.file_bucket
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_acl" "file" {
+  bucket = aws_s3_bucket.file.id
   acl    = "private"
 }
 
