@@ -47,7 +47,6 @@ module "publish_user" {
 
 resource "aws_s3_bucket" "redirect" {
   bucket = var.redirect_bucket
-  acl    = "private"
 }
 
 resource "aws_s3_bucket_acl" "redirect" {
@@ -152,7 +151,6 @@ resource "aws_cloudfront_distribution" "redirect" {
 
 resource "aws_s3_bucket" "file" {
   bucket = var.file_bucket
-  acl    = "private"
 }
 
 resource "aws_s3_bucket_acl" "file" {
