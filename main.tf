@@ -14,7 +14,16 @@ data "aws_iam_policy_document" "redirect_bucket_read_access" {
 
     principals {
       type        = "AWS"
-      identifiers = ["*"]
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+
+      values = [
+        aws_cloudfront_distribution.redirect.arn,
+      ]
     }
   }
 }
@@ -26,7 +35,16 @@ data "aws_iam_policy_document" "file_bucket_read_access" {
 
     principals {
       type        = "AWS"
-      identifiers = ["*"]
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+
+      values = [
+        aws_cloudfront_distribution.file.arn,
+      ]
     }
   }
 }
