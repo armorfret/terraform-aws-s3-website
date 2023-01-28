@@ -39,7 +39,7 @@ module "certificate" {
 
 module "publish_user" {
   source         = "armorfret/s3-publish/aws"
-  version        = "0.5.0"
+  version        = "0.5.1"
   logging_bucket = var.logging_bucket
   publish_bucket = var.file_bucket
   make_bucket    = "0"
@@ -47,6 +47,7 @@ module "publish_user" {
 
 resource "aws_s3_bucket" "redirect" {
   bucket = var.redirect_bucket
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "redirect" {
@@ -146,6 +147,7 @@ resource "aws_cloudfront_distribution" "redirect" {
 
 resource "aws_s3_bucket" "file" {
   bucket = var.file_bucket
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "file" {
