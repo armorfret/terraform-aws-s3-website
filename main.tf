@@ -13,7 +13,7 @@ data "aws_iam_policy_document" "redirect_bucket_read_access" {
     resources = ["arn:aws:s3:::${var.redirect_bucket}/*"]
 
     principals {
-      type        = "AWS"
+      type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
     }
 
@@ -34,7 +34,7 @@ data "aws_iam_policy_document" "file_bucket_read_access" {
     resources = ["arn:aws:s3:::${var.file_bucket}/*"]
 
     principals {
-      type        = "AWS"
+      type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
     }
 
