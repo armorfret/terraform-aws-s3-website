@@ -109,8 +109,9 @@ resource "aws_s3_bucket_website_configuration" "redirect" {
 
 resource "aws_cloudfront_distribution" "redirect" {
   origin {
-    domain_name = aws_s3_bucket_website_configuration.redirect.website_endpoint
-    origin_id   = "redirect-bucket"
+    domain_name              = aws_s3_bucket_website_configuration.redirect.website_endpoint
+    origin_access_control_id = aws_cloudfront_origin_access_control.this.id
+    origin_id                = "redirect-bucket"
 
     custom_origin_config {
       http_port              = "80"
@@ -167,6 +168,14 @@ resource "aws_cloudfront_distribution" "redirect" {
   }
 }
 
+resource "aws_cloudfront_origin_access_control" "this" {
+  name                              = "${var.file_bucket}-oac"
+  description                       = ""
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 resource "aws_s3_bucket" "file" {
   bucket = var.file_bucket
 }
@@ -217,8 +226,9 @@ resource "aws_s3_bucket_website_configuration" "file" {
 
 resource "aws_cloudfront_distribution" "file" {
   origin {
-    domain_name = aws_s3_bucket_website_configuration.file.website_endpoint
-    origin_id   = "file-bucket"
+    domain_name              = aws_s3_bucket_website_configuration.file.website_endpoint
+    origin_access_control_id = aws_cloudfront_origin_access_control.this.id
+    origin_id                = "file-bucket"
 
     custom_origin_config {
       http_port              = "80"
