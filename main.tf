@@ -13,17 +13,8 @@ data "aws_iam_policy_document" "redirect_bucket_read_access" {
     resources = ["arn:aws:s3:::${var.redirect_bucket}/*"]
 
     principals {
-      type        = "Service"
-      identifiers = ["cloudfront.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceArn"
-
-      values = [
-        aws_cloudfront_distribution.redirect.arn,
-      ]
+      type        = "AWS"
+      identifiers = ["*"]
     }
   }
 }
@@ -34,17 +25,8 @@ data "aws_iam_policy_document" "file_bucket_read_access" {
     resources = ["arn:aws:s3:::${var.file_bucket}/*"]
 
     principals {
-      type        = "Service"
-      identifiers = ["cloudfront.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceArn"
-
-      values = [
-        aws_cloudfront_distribution.file.arn,
-      ]
+      type        = "AWS"
+      identifiers = ["*"]
     }
   }
 }
@@ -63,21 +45,13 @@ module "publish_user" {
   make_bucket    = "0"
 }
 
+#tfsec:ignore:aws-s3-specify-public-access-block
+#tfsec:ignore:aws-s3-block-public-acls
+#tfsec:ignore:aws-s3-block-public-policy
+#tfsec:ignore:aws-s3-ignore-public-acls
+#tfsec:ignore:aws-s3-no-public-buckets
 resource "aws_s3_bucket" "redirect" {
   bucket = var.redirect_bucket
-}
-
-resource "aws_s3_bucket_acl" "redirect" {
-  bucket = aws_s3_bucket.redirect.id
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_public_access_block" "redirect" {
-  bucket                  = aws_s3_bucket.redirect.id
-  block_public_acls       = true
-  block_public_policy     = true
-  restrict_public_buckets = true
-  ignore_public_acls      = true
 }
 
 resource "aws_s3_bucket_versioning" "redirect" {
@@ -109,9 +83,8 @@ resource "aws_s3_bucket_website_configuration" "redirect" {
 
 resource "aws_cloudfront_distribution" "redirect" {
   origin {
-    domain_name              = aws_s3_bucket_website_configuration.redirect.website_endpoint
-    origin_access_control_id = aws_cloudfront_origin_access_control.this.id
-    origin_id                = "redirect-bucket"
+    domain_name = aws_s3_bucket_website_configuration.redirect.website_endpoint
+    origin_id   = "redirect-bucket"
 
     custom_origin_config {
       http_port              = "80"
@@ -168,29 +141,13 @@ resource "aws_cloudfront_distribution" "redirect" {
   }
 }
 
-resource "aws_cloudfront_origin_access_control" "this" {
-  name                              = "${var.file_bucket}-oac"
-  description                       = ""
-  origin_access_control_origin_type = "s3"
-  signing_behavior                  = "always"
-  signing_protocol                  = "sigv4"
-}
-
+#tfsec:ignore:aws-s3-specify-public-access-block
+#tfsec:ignore:aws-s3-block-public-acls
+#tfsec:ignore:aws-s3-block-public-policy
+#tfsec:ignore:aws-s3-ignore-public-acls
+#tfsec:ignore:aws-s3-no-public-buckets
 resource "aws_s3_bucket" "file" {
   bucket = var.file_bucket
-}
-
-resource "aws_s3_bucket_acl" "file" {
-  bucket = aws_s3_bucket.file.id
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_public_access_block" "file" {
-  bucket                  = aws_s3_bucket.file.id
-  block_public_acls       = true
-  block_public_policy     = true
-  restrict_public_buckets = true
-  ignore_public_acls      = true
 }
 
 resource "aws_s3_bucket_policy" "file" {
@@ -226,9 +183,8 @@ resource "aws_s3_bucket_website_configuration" "file" {
 
 resource "aws_cloudfront_distribution" "file" {
   origin {
-    domain_name              = aws_s3_bucket_website_configuration.file.website_endpoint
-    origin_access_control_id = aws_cloudfront_origin_access_control.this.id
-    origin_id                = "file-bucket"
+    domain_name = aws_s3_bucket_website_configuration.file.website_endpoint
+    origin_id   = "file-bucket"
 
     custom_origin_config {
       http_port              = "80"
@@ -318,3 +274,4 @@ resource "aws_cloudfront_response_headers_policy" "this" {
     }
   }
 }
+
