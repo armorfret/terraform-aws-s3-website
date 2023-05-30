@@ -39,7 +39,7 @@ module "certificate" {
 
 module "publish_user" {
   source         = "armorfret/s3-publish/aws"
-  version        = "0.5.3"
+  version        = "0.6.0"
   logging_bucket = var.logging_bucket
   publish_bucket = var.file_bucket
   make_bucket    = "0"
