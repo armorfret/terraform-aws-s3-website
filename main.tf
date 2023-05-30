@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
   }
 }
@@ -33,13 +33,13 @@ data "aws_iam_policy_document" "file_bucket_read_access" {
 
 module "certificate" {
   source    = "armorfret/acm-certificate/aws"
-  version   = "0.2.0"
+  version   = "0.3.0"
   hostnames = concat([var.primary_hostname], var.redirect_hostnames)
 }
 
 module "publish_user" {
   source         = "armorfret/s3-publish/aws"
-  version        = "0.6.1"
+  version        = "0.7.0"
   logging_bucket = var.logging_bucket
   publish_bucket = var.file_bucket
   make_bucket    = "0"
