@@ -42,7 +42,7 @@ module "publish_user" {
   version        = "0.8.0"
   logging_bucket = var.logging_bucket
   publish_bucket = var.file_bucket
-  make_bucket    = "0"
+  make_bucket    = false
 }
 
 resource "aws_s3_bucket" "redirect" {
