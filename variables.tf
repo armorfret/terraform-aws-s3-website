@@ -41,3 +41,21 @@ variable "content_security_policy" {
   type        = string
   default     = "frame-ancestors 'none'; default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
 }
+
+variable "kms_key_arn" {
+  description = "Use custom KMS key for buckets"
+  type        = string
+  default     = ""
+}
+
+variable "use_kms" {
+  description = "Use KMS instead of AES SSE"
+  type        = bool
+  default     = false
+}
+
+variable "waf_id" {
+  description = "WAF ID to use for Cloudfront CDN"
+  type        = string
+  default     = ""
+}

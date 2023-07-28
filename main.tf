@@ -33,25 +33,39 @@ data "aws_iam_policy_document" "file_bucket_read_access" {
 
 module "certificate" {
   source    = "armorfret/acm-certificate/aws"
-  version   = "0.3.0"
+  version   = "0.3.1"
   hostnames = concat([var.primary_hostname], var.redirect_hostnames)
 }
 
 module "publish_user" {
   source         = "armorfret/s3-publish/aws"
-  version        = "0.7.0"
+  version        = "0.8.0"
   logging_bucket = var.logging_bucket
   publish_bucket = var.file_bucket
   make_bucket    = "0"
 }
 
-#tfsec:ignore:aws-s3-specify-public-access-block
-#tfsec:ignore:aws-s3-block-public-acls
-#tfsec:ignore:aws-s3-block-public-policy
-#tfsec:ignore:aws-s3-ignore-public-acls
-#tfsec:ignore:aws-s3-no-public-buckets
 resource "aws_s3_bucket" "redirect" {
   bucket = var.redirect_bucket
+}
+
+resource "aws_s3_bucket_public_access_block" "redirect" {
+  bucket                  = aws_s3_bucket.redirect.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "redirect" {
+  bucket = aws_s3_bucket.redirect.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = var.use_kms ? var.kms_key_arn : null
+      sse_algorithm     = var.use_kms ? "aws:kms" : "AES256"
+    }
+  }
 }
 
 resource "aws_s3_bucket_versioning" "redirect" {
@@ -139,15 +153,31 @@ resource "aws_cloudfront_distribution" "redirect" {
     minimum_protocol_version = var.tls_level
     acm_certificate_arn      = module.certificate.arn
   }
+
+  web_acl_id = var.waf_id == "" ? null : var.waf_id
 }
 
-#tfsec:ignore:aws-s3-specify-public-access-block
-#tfsec:ignore:aws-s3-block-public-acls
-#tfsec:ignore:aws-s3-block-public-policy
-#tfsec:ignore:aws-s3-ignore-public-acls
-#tfsec:ignore:aws-s3-no-public-buckets
 resource "aws_s3_bucket" "file" {
   bucket = var.file_bucket
+}
+
+resource "aws_s3_bucket_public_access_block" "file" {
+  bucket                  = aws_s3_bucket.file.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "file" {
+  bucket = aws_s3_bucket.file.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = var.use_kms ? var.kms_key_arn : null
+      sse_algorithm     = var.use_kms ? "aws:kms" : "AES256"
+    }
+  }
 }
 
 resource "aws_s3_bucket_policy" "file" {
@@ -240,6 +270,8 @@ resource "aws_cloudfront_distribution" "file" {
     minimum_protocol_version = var.tls_level
     acm_certificate_arn      = module.certificate.arn
   }
+
+  web_acl_id = var.waf_id == "" ? null : var.waf_id
 }
 
 resource "aws_cloudfront_response_headers_policy" "this" {
