@@ -33,13 +33,13 @@ data "aws_iam_policy_document" "file_bucket_read_access" {
 
 module "certificate" {
   source    = "armorfret/acm-certificate/aws"
-  version   = "0.3.1"
+  version   = "0.3.2"
   hostnames = concat([var.primary_hostname], var.redirect_hostnames)
 }
 
 module "publish_user" {
   source         = "armorfret/s3-publish/aws"
-  version        = "0.8.0"
+  version        = "0.8.1"
   logging_bucket = var.logging_bucket
   publish_bucket = var.file_bucket
   make_bucket    = false
