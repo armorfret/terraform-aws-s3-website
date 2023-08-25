@@ -7,18 +7,6 @@ terraform {
   }
 }
 
-data "aws_iam_policy_document" "redirect_bucket_read_access" {
-  statement {
-    actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::${var.redirect_bucket}/*"]
-
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-  }
-}
-
 data "aws_iam_policy_document" "file_bucket_read_access" {
   statement {
     actions   = ["s3:GetObject"]
@@ -73,11 +61,6 @@ resource "aws_s3_bucket_versioning" "redirect" {
   versioning_configuration {
     status = "Enabled"
   }
-}
-
-resource "aws_s3_bucket_policy" "redirect" {
-  bucket = aws_s3_bucket.redirect.id
-  policy = data.aws_iam_policy_document.redirect_bucket_read_access.json
 }
 
 resource "aws_s3_bucket_logging" "redirect" {
